@@ -50,8 +50,6 @@ fun main(): Unit = application {
     student6Print()
 }
 
-// пробный коммит
-
 
 private fun student2Print() {
     val x = 7
