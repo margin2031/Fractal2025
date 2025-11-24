@@ -42,6 +42,14 @@ fun main(): Unit = application {
     ) {
         App()
     }
+    student4Print()
 }
 
 // пробный коммит
+
+private fun student4Print() {
+    val numerator = 20.0
+    val denominator = 3.0
+    val result = numerator / denominator
+    println("Student 4: $numerator / $denominator = ${"%.2f".format(result)}")
+}
