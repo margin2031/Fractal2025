@@ -54,7 +54,7 @@ fun main(): Unit = application {
 // что-то еще
 // еще что то пропро
 //пвапвапавпвапвап55
-// пупупу
+// пупупу2
 
 private fun student2Print() {
     val x = 7
