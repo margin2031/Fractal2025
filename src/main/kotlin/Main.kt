@@ -52,16 +52,19 @@ fun main(): Unit = application {
 }
 
 // пробный коммит
-// что-то еще
-// еще что то пропро
-//пвапвапавпвапвап55
-// пупупу2
+
 
 private fun student2Print() {
     val x = 7
     val y = 8
     val product = x * y
     println("Student 2: $x * $y = $product")
+}
+
+
+private fun student9Print() {
+    val randomNum = (1..100).random()
+    println("Student 9: Random number between 1 and 100: $randomNum")
 }
 
 
