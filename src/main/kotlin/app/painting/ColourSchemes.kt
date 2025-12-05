@@ -11,16 +11,25 @@ typealias ColorScheme = (Float) -> Color
 //TODO: оптмизировать по памяти
 
 object ColorSchemes {
+    // ИЗМЕНЕНА НА РОЗОВУЮ СХЕМУ
     val standard: ColorScheme = { probability ->
         if (probability == 1f) {
             Color.Black
         } else {
+            // Розовая цветовая схема
+            // Основной розовый цвет с вариациями
+            val pinkHue = 330f // Розовый оттенок (330 градусов в HSV)
+            val hue = pinkHue / 360f
+
+            // Создаём красивые розовые оттенки
             val t = probability * 2f * PI.toFloat()
 
-            val baseR = 0.95f
-            val baseG = 0.45f
-            val baseB = 0.75f
+            // Вариации розового: от нежно-розового к насыщенному
+            val baseR = 0.95f // Базовый красный для розового
+            val baseG = 0.45f // Базовый зелёный для розового
+            val baseB = 0.75f // Базовый синий для розового
 
+            // Добавляем волнообразные вариации для красоты
             val variationR = 0.1f * sin(t * 3f)
             val variationG = 0.1f * sin(t * 5f + 1f)
             val variationB = 0.1f * sin(t * 7f + 2f)
@@ -106,6 +115,7 @@ object ColorSchemes {
         }
     }
 
+    // ДОБАВИМ ЕЩЁ ОДНУ РОЗОВУЮ СХЕМУ ДЛЯ РАЗНООБРАЗИЯ
     val softPink: ColorScheme = { probability ->
         if (probability == 1f) {
             Color.Black
