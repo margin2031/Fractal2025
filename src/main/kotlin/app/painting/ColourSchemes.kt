@@ -8,6 +8,7 @@ import kotlin.math.abs
 
 typealias ColorScheme = (Float) -> Color
 
+//TODO: оптмизировать по памяти
 
 object ColorSchemes {
     val standard: ColorScheme = { probability ->
