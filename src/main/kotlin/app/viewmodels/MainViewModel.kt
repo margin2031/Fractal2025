@@ -528,7 +528,7 @@ class MainViewModel {
 
     fun saveAsJpg() {
         ExporterJPG.exportToJpg(
-            painter = fractalPainter,
+            image = fractalImage,
             plain = plain,
             zoomText = zoomText,
             maxIterations = maxIterations
