@@ -5,37 +5,40 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.input.key.*
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import app.fractal.FractalSaving.FractalSaving
 import app.mouse.FractalContextMenu
 import app.mouse.fractalMouseHandlers
+import app.painting.ColorScheme
+import app.painting.ColorSchemes.getNameByColorScheme
 import app.painting.convertation.Converter
 import app.viewmodels.MainViewModel
+import java.awt.FileDialog
+import java.awt.Frame
+import javax.swing.JFileChooser
+import javax.swing.JOptionPane
+import javax.swing.JOptionPane.showMessageDialog
+import javax.swing.filechooser.FileNameExtensionFilter
 
 private val SoftPink = Color(0xFFF8BBD0)
 private val LightPink = Color(0xFFF48FB1)
@@ -624,8 +627,37 @@ fun ControlPanel(viewModel: MainViewModel) {
                     )
 
                     // НОВАЯ КНОПКА: Загрузить фрактал
-                    Button(
-                        onClick = { /* TODO: Реализовать загрузку фрактала */ },
+                    Button(onClick = {
+                            val dialog = FileDialog(null as Frame?, "Выберите файл", FileDialog.LOAD)
+                            dialog.isVisible = true
+                            val file = dialog.file
+                            val dir = dialog.directory
+                            if (file != null && dir != null) {
+                                val save = FractalSaving()
+                                try {
+                                    save.loadFractalObject(dir, file)
+                                    viewModel.selectionStart = save.selectionStart
+                                    viewModel.selectionEnd = save.selectionEnd
+                                    viewModel.currentColorSchemeName = save.color
+                                    when(save.fractalName){
+                                        "mandelbrot", "мандельброт" -> viewModel.setMandelbrot()
+                                        "julia", "жюлиа" -> viewModel.setJulia()
+                                        "burningship", "корабль", "горящий корабль" -> viewModel.setBurningShip()
+                                        "tricorn", "трикорн" -> viewModel.setTricorn()
+                                        else -> viewModel.setMandelbrot()
+                                    }
+                                    print("LOLKEK")
+                                }
+                                catch (_: Exception) {
+                                    showMessageDialog(
+                                        null,                // родительское окно (null = центр экрана)
+                                        "Файл не найден",             // текст сообщения
+                                        "Сообщение",         // заголовок окна
+                                        JOptionPane.INFORMATION_MESSAGE // тип иконки
+                                    )
+                                }
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
                             backgroundColor = ButtonColor,
@@ -691,7 +723,21 @@ fun ControlPanel(viewModel: MainViewModel) {
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Button(
-                            onClick = { },
+                            onClick = {
+                                val chooser = JFileChooser()
+                                // фильтр по расширению .fractal
+                                chooser.fileFilter = FileNameExtensionFilter("Fractal files", "fractal")
+                                chooser.dialogTitle = "Сохранить файл"
+
+                                val result = chooser.showSaveDialog(null)
+                                if (result == JFileChooser.APPROVE_OPTION) {
+                                    var file = chooser.selectedFile
+                                    // если пользователь не добавил расширение вручную — добавим
+                                    if (!file.name.endsWith(".fractal")) file = java.io.File(file.absolutePath + ".fractal")
+                                    val save = FractalSaving(viewModel.selectionStart, viewModel.selectionEnd,viewModel.currentFractalName,viewModel.currentColorSchemeName)
+                                    save.saveFractalObject(file)
+                                }
+                            },
                             modifier = Modifier
                                 .weight(1f)
                                 .height(40.dp),

@@ -131,4 +131,13 @@ object ColorSchemes {
             else -> standard
         }
     }
+    fun getNameByColorScheme(color: ColorScheme): String {
+        return when (color) {
+            standard -> "standard"
+            fire -> "fire"
+            rainbow -> "rainbow"
+            cosmic -> "cosmic"
+            else -> "standard"
+        }
+    }
 }
