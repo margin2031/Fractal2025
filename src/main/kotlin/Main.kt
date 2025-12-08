@@ -4,12 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.key.*
@@ -42,6 +36,8 @@ import app.ui.FractalInfoPanel
 import app.ui.FractalTopAppBar
 import app.ui.HistoryDialog
 import app.viewmodels.MainViewModel
+
+
 
 private val SoftPink = Color(0xFFF8BBD0)
 private val LightPink = Color(0xFFF48FB1)

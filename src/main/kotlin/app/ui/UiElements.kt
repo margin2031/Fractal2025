@@ -348,8 +348,11 @@ fun FractalControlPanel(
                         colors = ButtonDefaults.buttonColors(backgroundColor = ButtonColor, contentColor = Color.White)) {
                         Text("Fractal", fontSize = 13.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                     }
-                    Button(onClick = { }, modifier = Modifier.weight(1f).height(40.dp),
-                        colors = ButtonDefaults.buttonColors(backgroundColor = ButtonColor, contentColor = Color.White)) {
+                    Button(
+                        onClick = { viewModel.saveAsJpg() },
+                        modifier = Modifier.weight(1f).height(40.dp),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = ButtonColor, contentColor = Color.White)
+                    ) {
                         Text("JPG", fontSize = 13.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
                     }
                 }

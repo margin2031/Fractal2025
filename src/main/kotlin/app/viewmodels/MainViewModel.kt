@@ -17,8 +17,7 @@ import app.fractal.IterationsCalculator
 import app.mouse.ClipboardService
 import app.history.UndoManager
 import kotlin.math.max
-import kotlin.math.min
-import kotlin.random.Random
+import app.utils.ExporterJPG
 
 class MainViewModel {
     var fractalImage: ImageBitmap = ImageBitmap(0, 0)
@@ -540,5 +539,15 @@ class MainViewModel {
         // Обновляем экран
         updateZoomLevel()
         mustRepaint = true
+    }
+
+
+    fun saveAsJpg() {
+        ExporterJPG.exportToJpg(
+            painter = fractalPainter,
+            plain = plain,
+            zoomText = zoomText,
+            maxIterations = maxIterations
+        )
     }
 }
