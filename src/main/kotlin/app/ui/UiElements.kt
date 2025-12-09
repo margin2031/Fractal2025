@@ -3,6 +3,9 @@ package app.ui
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.onDrag
+import androidx.compose.material.Button
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -14,7 +17,11 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
+import com.sun.jndi.toolkit.url.Uri
 import kotlinx.coroutines.launch
+import java.awt.FileDialog
+import java.awt.Frame
+
 
 @Composable
 fun PaintPanel(
@@ -54,5 +61,19 @@ fun SelectionPanel(
         onDrag = onDrag,
     )){
         this.drawRect(Color.Blue, offset, size, alpha = 0.2f)
+    }
+}
+@Composable
+fun FilePicker(onFileSelected: (String) -> Unit,modifier: Modifier = Modifier) {
+    Button(onClick = {
+        val dialog = FileDialog(null as Frame?, "Выберите файл", FileDialog.LOAD)
+        dialog.isVisible = true
+        val file = dialog.file
+        val dir = dialog.directory
+        if (file != null && dir != null) {
+            onFileSelected("$dir/$file")
+        }
+    }) {
+        Text("Выбрать файл")
     }
 }
