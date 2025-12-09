@@ -16,12 +16,19 @@ import app.painting.ColorSchemes
 import app.fractal.IterationsCalculator
 import app.mouse.ClipboardService
 import app.history.UndoManager
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.random.Random
+import app.tour.FractalTour
+import app.tour.TourFrame
+import app.utils.ExporterJPG
+import app.utils.SoundPlayer
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlin.math.exp
+import kotlin.math.ln
 
 class MainViewModel {
-    var fractalImage: ImageBitmap = ImageBitmap(0, 0)
+    var fractalImage by mutableStateOf(ImageBitmap(0, 0))
     var selectionStart by mutableStateOf(Offset.Zero)
     var selectionEnd by mutableStateOf(Offset.Zero)
     var isSelecting by mutableStateOf(false)
@@ -39,6 +46,7 @@ class MainViewModel {
     var contextMenuPosition by mutableStateOf(Offset.Zero)
     var contextMenuCoordinates by mutableStateOf("")
 
+    private var iterationsOffset by mutableStateOf(0)
 
     private val initialXMin = -2.0
     private val initialXMax = 1.0
@@ -56,7 +64,7 @@ class MainViewModel {
     var zoomText by mutableStateOf("1x")
 
 
-    private var fractalPainter by mutableStateOf(
+    var fractalPainter by mutableStateOf(
         FractalPainter(
             plain,
             FractalFunctions.mandelbrot,
@@ -67,7 +75,6 @@ class MainViewModel {
 
     private var mustRepaint by mutableStateOf(true)
 
-    private var iterationsOffset by mutableStateOf(0)
 
     val maxIterations: Int
         get() = getAdjustedMaxIterations()
@@ -84,6 +91,155 @@ class MainViewModel {
 
             return Pair(Offset(x, y), Size(width, height))
         }
+
+    var currentTour: FractalTour? = null
+    private var tourJob: Job? = null
+    var isTourRunning by mutableStateOf(false)
+    private val viewModelScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    var isRecordingTour by mutableStateOf(false)
+    var currentTourFrames by mutableStateOf<List<TourFrame>>(emptyList())
+    var tourName by mutableStateOf("Моя экскурсия")
+
+
+    fun startTour(tour: FractalTour) {
+        if (isTourRunning) return
+        isTourRunning = true
+        tourJob = viewModelScope.launch {
+            try {
+                val frames = tour.frames
+                if (frames.isEmpty()) return@launch
+
+                while (true) {
+                    for (i in 0 until frames.size) {
+                        val frameStart = frames[i]
+                        val frameEnd = frames[(i + 1) % frames.size]
+
+                        // Save state *before* animating (so user can undo tour start)
+                        if (i == 0) saveCurrentState()
+
+                        animateBetween(frameStart.plain, frameEnd.plain, frameStart.durationMs)
+
+                        // Switch fractal/color mid-tour?
+                        if (frameEnd.fractalName != currentFractalName) {
+                            setFractalByName(frameEnd.fractalName)
+                        }
+                        if (frameEnd.colorSchemeName != currentColorSchemeName) {
+                            setColorSchemeByName(frameEnd.colorSchemeName)
+                        }
+
+                        // Early exit if tour stopped
+                        if (!isTourRunning) break
+                    }
+                    if (!tour.loop) break
+                }
+            } finally {
+                isTourRunning = false
+            }
+        }
+    }
+
+    fun startTourRecording() {
+        isRecordingTour = true
+        currentTourFrames = emptyList()
+    }
+
+    fun stopTourRecording() {
+        isRecordingTour = false
+    }
+
+    fun saveAndStartTour() {
+        if (currentTourFrames.size < 2) return // минимум 2 кадра
+        currentTour = FractalTour(
+            name = tourName.ifBlank { "Экскурсия ${System.currentTimeMillis()}" },
+            frames = currentTourFrames,
+            loop = false
+        )
+        isRecordingTour = false
+        startTour(currentTour!!)
+    }
+
+    private fun setFractalByName(name: String) {
+        when (name) {
+            "Мандельброт" -> setMandelbrot()
+            "Жюлиа" -> setJulia()
+            "Трикорн" -> setTricorn()
+            "Кубический" -> setCubicMandelbrot() // add if supported
+        }
+    }
+
+    private fun setColorSchemeByName(name: String) {
+        when (name) {
+            "Стандартная" -> setStandardColors()
+            "Огненная" -> setFireColors()
+            "Радужная" -> setRainbowColors()
+            "Ледяная" -> setIceColors()
+        }
+    }
+
+    private fun setCubicMandelbrot() {
+        resetPanFlag()
+        saveCurrentState()
+        fractalPainter = fractalPainter.withFractal(FractalFunctions.cubicMandelbrot)
+        currentFractalName = "Кубический"
+        mustRepaint = true
+    }
+
+    fun stopTour() {
+        isTourRunning = false
+        tourJob?.cancel()
+        tourJob = null
+    }
+
+    private suspend fun animateBetween(
+        startPlain: Plain,
+        endPlain: Plain,
+        durationMs: Long
+    ) {
+        val t0 = startPlain
+        val t1 = endPlain
+
+        val cx0 = (t0.xMin + t0.xMax) / 2
+        val cy0 = (t0.yMin + t0.yMax) / 2
+        val s0 = 3.0 / (t0.xMax - t0.xMin)
+
+        val cx1 = (t1.xMin + t1.xMax) / 2
+        val cy1 = (t1.yMin + t1.yMax) / 2
+        val s1 = 3.0 / (t1.xMax - t1.xMin)
+
+        val logS0 = ln(s0)
+        val logS1 = ln(s1)
+
+        val steps = (durationMs / 16).coerceAtLeast(2) // ~60 FPS
+        val dt = 1.0 / steps
+
+        for (i in 0..steps.toInt()) {
+            if (!isTourRunning) break
+
+            val alpha = (i * dt).coerceIn(0.0, 1.0)
+            val cx = lerp(cx0, cx1, alpha)
+            val cy = lerp(cy0, cy1, alpha)
+            val s = exp(lerp(logS0, logS1, alpha))
+
+            // Adjust for *current* screen aspect
+            val aspect = plain.width / plain.height
+            val width = 3.0 / s
+            val height = width / aspect
+
+            plain.xMin = cx - width / 2
+            plain.xMax = cx + width / 2
+            plain.yMin = cy - height / 2
+            plain.yMax = cy + height / 2
+
+            updateZoomLevel()
+            mustRepaint = true
+
+            // Redraw next frame
+            delay(16) // ~60 FPS
+        }
+    }
+
+    // Helper
+    private fun lerp(a: Double, b: Double, t: Double) = a + (b - a) * t
 
     init {
         saveCurrentState()
@@ -139,7 +295,6 @@ class MainViewModel {
         val fractalFunction = when (state.fractalName) {
             "Мандельброт" -> FractalFunctions.mandelbrot
             "Жюлиа" -> FractalFunctions.julia
-            "Горящий корабль" -> FractalFunctions.burningShip
             "Трикорн" -> FractalFunctions.tricorn
             else -> FractalFunctions.mandelbrot
         }
@@ -148,7 +303,7 @@ class MainViewModel {
             "Стандартная" -> ColorSchemes.standard
             "Огненная" -> ColorSchemes.fire
             "Радужная" -> ColorSchemes.rainbow
-            "Космическая" -> ColorSchemes.cosmic
+            "Ледяная" -> ColorSchemes.ice
             else -> ColorSchemes.standard
         }
 
@@ -158,6 +313,7 @@ class MainViewModel {
             colorScheme,
             { getAdjustedMaxIterations() }
         )
+        mustRepaint = true
     }
 
     private fun updateFractalPainter() {
@@ -167,19 +323,6 @@ class MainViewModel {
             fractalPainter.colorScheme,
             { getAdjustedMaxIterations() }
         )
-    }
-
-    fun increaseIterations() {
-        saveCurrentState()
-        iterationsOffset += 100
-        updateFractalPainter()
-        mustRepaint = true
-    }
-
-    fun decreaseIterations() {
-        saveCurrentState()
-        iterationsOffset = max(iterationsOffset - 100, 0)
-        updateFractalPainter()
         mustRepaint = true
     }
 
@@ -218,6 +361,7 @@ class MainViewModel {
     private fun updateZoomLevel() {
         val initialWidth = initialXMax - initialXMin
         val currentWidth = plain.xMax - plain.xMin
+        val oldZoom = zoomLevel
 
         zoomLevel = initialWidth / currentWidth
 
@@ -228,6 +372,11 @@ class MainViewModel {
             zoomLevel >= 10 -> String.format("%.1fx", zoomLevel)
             zoomLevel >= 1 -> String.format("%.2fx", zoomLevel)
             else -> String.format("%.4fx", zoomLevel)
+        }
+        mustRepaint = true
+
+        if ((zoomLevel / oldZoom) > 1.05 || (oldZoom / zoomLevel) > 1.05) {
+            SoundPlayer.zoom()
         }
     }
 
@@ -242,16 +391,17 @@ class MainViewModel {
             || fractalImage.height != plain.height.toInt()
         ) {
             launch(Dispatchers.Default) {
-                fractalPainter.paint(scope)
+                fractalImage = fractalPainter.generateImage(scope)
             }
-        } else {
-            scope.drawImage(fractalImage)
         }
+        // ??? Фигня, допилить
+        if (fractalImage.height != 0 && fractalImage.width != 0 ) {
+            launch(Dispatchers.Default) {
+                fractalPainter.paint(scope, fractalImage)
+            }
+        }
+        System.gc()
         mustRepaint = false
-    }
-
-    fun onImageUpdate(image: ImageBitmap) {
-        fractalImage = image
     }
 
     fun onStartSelecting(offset: Offset) {
@@ -333,15 +483,6 @@ class MainViewModel {
         mustRepaint = true
     }
 
-    fun setBurningShip() {
-        resetPanFlag()
-        resetPanFlag()
-        saveCurrentState()
-        fractalPainter = fractalPainter.withFractal(FractalFunctions.burningShip)
-        currentFractalName = "Горящий корабль"
-        mustRepaint = true
-    }
-
     fun setTricorn() {
         resetPanFlag()
         resetPanFlag()
@@ -378,12 +519,12 @@ class MainViewModel {
         mustRepaint = true
     }
 
-    fun setCosmicColors() {
+    fun setIceColors() {
         resetPanFlag()
         resetPanFlag()
         saveCurrentState()
-        fractalPainter = fractalPainter.withColorScheme(ColorSchemes.cosmic)
-        currentColorSchemeName = "Космическая"
+        fractalPainter = fractalPainter.withColorScheme(ColorSchemes.ice)
+        currentColorSchemeName = "Ледяная"
         mustRepaint = true
     }
 
@@ -541,18 +682,14 @@ class MainViewModel {
         updateZoomLevel()
         mustRepaint = true
     }
-    fun updateTypeColorZoom(colorName:String,fractalName: String,selectionStart: Offset,selectionEnd:Offset){
-        resetPanFlag()
-        resetPanFlag()
-        saveCurrentState()
-        fractalPainter = fractalPainter.withFractal(FractalFunctions.getFractalByName(fractalName))
-        currentFractalName = fractalName
-        fractalPainter = fractalPainter.withColorScheme(ColorSchemes.getColorSchemeByName(colorName))
-        currentColorSchemeName = colorName
-        this.selectionStart = selectionStart
-        this.selectionEnd = selectionEnd
-        isSelecting = true
-        onStopSelecting()
-        mustRepaint = true
+
+
+    fun saveAsJpg() {
+        ExporterJPG.exportToJpg(
+            image = fractalImage,
+            plain = plain,
+            zoomText = zoomText,
+            maxIterations = maxIterations
+        )
     }
 }
