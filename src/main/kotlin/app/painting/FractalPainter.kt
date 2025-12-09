@@ -1,28 +1,19 @@
 package app.painting
 
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
+
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import app.fractal.FractalFunction
-//import app.math.Complex
 import app.painting.convertation.Converter
 import app.painting.convertation.Plain
 import org.jetbrains.skia.*
-//import kotlin.concurrent.thread
-import kotlin.math.absoluteValue
-import kotlin.math.cos
-import kotlin.math.sin
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asComposeImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.Color
-import java.awt.image.BufferedImage
 import kotlinx.coroutines.*
 
 // ЖЕСТКИЙ ХАРДКОД (ЯВНО НЕ ПОМЕЧАЮ)
-val bytePixels = ByteArray(2000 * 2000 * 4)
+val bytePixels = ByteArray(2600 * 2600 * 4)
 
 class FractalPainter(private val plain: Plain,
                      val fractalFunction: FractalFunction,
