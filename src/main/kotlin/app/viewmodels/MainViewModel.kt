@@ -539,4 +539,39 @@ class MainViewModel {
             maxIterations = maxIterations
         )
     }
+    fun updateTypeColorZoom(colorName:String,fractalName: String,selectionStart: Offset,selectionEnd:Offset){
+        resetPanFlag()
+        saveCurrentState()
+        val currentAspect = plain.width / plain.height
+
+        if (currentAspect > initialFractalAspect) {
+            val width = (initialYMax - initialYMin) * currentAspect
+            plain.xMin = -width / 2
+            plain.xMax = width / 2
+            plain.yMin = initialYMin
+            plain.yMax = initialYMax
+        } else {
+            val height = (initialXMax - initialXMin) / currentAspect
+            plain.xMin = initialXMin
+            plain.xMax = initialXMax
+            plain.yMin = -height / 2
+            plain.yMax = height / 2
+        }
+
+        lastWindowWidth = plain.width
+        lastWindowHeight = plain.height
+        zoomLevel = 1.0
+        zoomText = "1x"
+        resetPanFlag()
+        resetPanFlag()
+        fractalPainter = fractalPainter.withFractal(FractalFunctions.getFractalByName(fractalName))
+        currentFractalName = fractalName
+        fractalPainter = fractalPainter.withColorScheme(ColorSchemes.getColorSchemeByName(colorName))
+        currentColorSchemeName = colorName
+        this.selectionStart = selectionStart
+        this.selectionEnd = selectionEnd
+        isSelecting = true
+        onStopSelecting()
+        mustRepaint = true
+    }
 }
