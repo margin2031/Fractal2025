@@ -29,8 +29,6 @@ import androidx.compose.ui.window.application
 import app.fractal.FractalSaving.FractalSaving
 import app.mouse.FractalContextMenu
 import app.mouse.fractalMouseHandlers
-import app.painting.ColorScheme
-import app.painting.ColorSchemes.getNameByColorScheme
 import app.painting.convertation.Converter
 import app.viewmodels.MainViewModel
 import java.awt.FileDialog
@@ -635,17 +633,9 @@ fun ControlPanel(viewModel: MainViewModel) {
                             if (file != null && dir != null) {
                                 val save = FractalSaving()
                                 try {
+                                    print("$dir/$file")
                                     save.loadFractalObject(dir, file)
-                                    viewModel.selectionStart = save.selectionStart
-                                    viewModel.selectionEnd = save.selectionEnd
-                                    viewModel.currentColorSchemeName = save.color
-                                    when(save.fractalName){
-                                        "mandelbrot", "мандельброт" -> viewModel.setMandelbrot()
-                                        "julia", "жюлиа" -> viewModel.setJulia()
-                                        "burningship", "корабль", "горящий корабль" -> viewModel.setBurningShip()
-                                        "tricorn", "трикорн" -> viewModel.setTricorn()
-                                        else -> viewModel.setMandelbrot()
-                                    }
+                                    viewModel.updateTypeColorZoom(save.color,save.fractalName,save.selectionStart,save.selectionEnd)
                                     print("LOLKEK")
                                 }
                                 catch (_: Exception) {

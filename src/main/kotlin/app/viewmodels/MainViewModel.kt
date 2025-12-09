@@ -541,4 +541,18 @@ class MainViewModel {
         updateZoomLevel()
         mustRepaint = true
     }
+    fun updateTypeColorZoom(colorName:String,fractalName: String,selectionStart: Offset,selectionEnd:Offset){
+        resetPanFlag()
+        resetPanFlag()
+        saveCurrentState()
+        fractalPainter = fractalPainter.withFractal(FractalFunctions.getFractalByName(fractalName))
+        currentFractalName = fractalName
+        fractalPainter = fractalPainter.withColorScheme(ColorSchemes.getColorSchemeByName(colorName))
+        currentColorSchemeName = colorName
+        this.selectionStart = selectionStart
+        this.selectionEnd = selectionEnd
+        isSelecting = true
+        onStopSelecting()
+        mustRepaint = true
+    }
 }
