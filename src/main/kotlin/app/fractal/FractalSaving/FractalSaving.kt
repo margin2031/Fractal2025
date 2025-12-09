@@ -15,9 +15,11 @@ class FractalSaving (
     /**
      * Сохранение объекта в файл с расширением .fractal
      */
-    fun saveFractalObject( file: File) {
-        ObjectOutputStream(FileOutputStream(file)).use { out ->
-            out.writeObject(this)
+    fun saveFractalObject( file: File?) {
+        file?.let {
+            ObjectOutputStream(FileOutputStream(it)).use { out ->
+                out.writeObject(this)
+            }
         }
     }
 
