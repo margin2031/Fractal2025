@@ -81,15 +81,39 @@ object ColorSchemes {
             val x = c * (1 - abs((hue / 60) % 2 - 1))
             val m = 0.5f - c / 2
 
-            val (r1, g1, b1) = when {
-                hue < 60 -> Triple(c, x, 0f)
-                hue < 120 -> Triple(x, c, 0f)
-                hue < 180 -> Triple(0f, c, x)
-                hue < 240 -> Triple(0f, x, c)
-                hue < 300 -> Triple(x, 0f, c)
-                else -> Triple(c, 0f, x)
-            }
+            var r1 = 0f
+            var g1 = 0f
+            var b1 = 0f
 
+            when {
+                hue < 60 -> {
+                    r1 = c
+                    g1 = x
+                    b1 = 0f
+                }
+                hue < 120 -> {
+                    r1 = x
+                    g1 = c
+                    b1 = 0f
+                }
+                hue < 180 -> {
+                    r1 = 0f
+                    g1 = c
+                    b1 = x}
+                hue < 240 -> {
+                    r1 = 0f
+                    g1 = x
+                    b1 = c}
+                hue < 300 -> {
+                    r1 = x
+                    g1 = 0f
+                    b1 = c
+                }
+                else -> {
+                    r1 = c
+                    g1 = 0f
+                    b1 = x}
+            }
             Color.makeRGB(
                 r = ((r1 + m) * 255f).toInt(),
                 g = ((g1 + m) * 255f).toInt(),

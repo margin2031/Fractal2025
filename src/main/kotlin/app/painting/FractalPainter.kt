@@ -21,6 +21,8 @@ import org.jetbrains.skia.Color
 import java.awt.image.BufferedImage
 import kotlinx.coroutines.*
 
+// ЖЕСТКИЙ ХАРДКОД (ЯВНО НЕ ПОМЕЧАЮ)
+val bytePixels = ByteArray(2000 * 2000 * 4)
 
 class FractalPainter(private val plain: Plain,
                      val fractalFunction: FractalFunction,
@@ -40,7 +42,7 @@ class FractalPainter(private val plain: Plain,
         val iterations = maxIterationsProvider()
         val width = plain.width.toInt()
         val height = plain.height.toInt()
-        val bytePixels = ByteArray(width * height * 4)
+        //val bytePixels = ByteArray(width * height * 4)
 
         val n = 8
         val jobs = mutableListOf<Job>()
@@ -64,8 +66,6 @@ class FractalPainter(private val plain: Plain,
                                 val probability = fractalFunction(zx, zy, iterations)
                                 val color = colorScheme(probability)
 
-
-
                                 val r = Color.getR(color)
                                 val g = Color.getG(color)
                                 val b = Color.getB(color)
@@ -84,6 +84,7 @@ class FractalPainter(private val plain: Plain,
             }
             jobs.joinAll()
         }
+        System.gc()
 
         val skiaBitmap = Bitmap()
         skiaBitmap.allocN32Pixels(width, height)

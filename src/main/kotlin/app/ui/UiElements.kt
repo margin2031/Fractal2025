@@ -334,7 +334,7 @@ fun FractalControlPanel(
                 ColorSchemeButton("Стандартная") { viewModel.setStandardColors() }
                 ColorSchemeButton("Огненная") { viewModel.setFireColors() }
                 ColorSchemeButton("Радужная") { viewModel.setRainbowColors() }
-                ColorSchemeButton("Ледяная") { viewModel.setCosmicColors() }
+                ColorSchemeButton("Ледяная") { viewModel.setIceColors() }
             }
 
             Divider(color = SoftPink, thickness = 1.dp)

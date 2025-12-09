@@ -243,12 +243,8 @@ class MainViewModel {
                 fractalPainter.paint(scope, fractalImage)
             }
         }
+        System.gc()
         mustRepaint = false
-    }
-
-    // ???
-    fun onImageUpdate(image: ImageBitmap) {
-        fractalImage = image
     }
 
     fun onStartSelecting(offset: Offset) {
@@ -366,7 +362,7 @@ class MainViewModel {
         mustRepaint = true
     }
 
-    fun setCosmicColors() {
+    fun setIceColors() {
         resetPanFlag()
         resetPanFlag()
         saveCurrentState()
