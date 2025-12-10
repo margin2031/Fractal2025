@@ -201,7 +201,6 @@ fun FractalBottomBar(
     }
 }
 
-// UiElements.kt
 
 @Composable
 fun FractalInfoPanel(
@@ -341,7 +340,6 @@ fun FractalControlPanel(
 
             Divider(color = SoftPink, thickness = 1.dp)
 
-            // Сохранение
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("Сохранить как:", color = TextDark, fontWeight = FontWeight.Medium, fontSize = 15.sp)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -372,7 +370,6 @@ fun FractalControlPanel(
 
             Divider(color = SoftPink, thickness = 1.dp)
 
-// Inside FractalControlPanel Composable
             // ——— ЭКСКУРСИЯ ———
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("Экскурсия:", color = TextDark, fontWeight = FontWeight.Medium, fontSize = 15.sp)

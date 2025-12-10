@@ -19,6 +19,7 @@ import app.history.UndoManager
 import app.tour.FractalTour
 import app.tour.TourFrame
 import app.utils.ExporterJPG
+import app.utils.MusicPlayer
 import app.utils.SoundPlayer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -104,6 +105,9 @@ class MainViewModel {
         if (isTourRunning) return
         isTourRunning = true
         tourJob = viewModelScope.launch {
+            val wasSoundEnabled = SoundPlayer.isEnabled
+            SoundPlayer.isEnabled = false
+            MusicPlayer.play("interstellar_theme.wav")
             try {
                 while (true) {
                     for (i in 0 until tour.frames.size - 1) {
@@ -113,6 +117,9 @@ class MainViewModel {
                     if (!tour.loop) break
                 }
             } finally {
+                isTourRunning = false
+                SoundPlayer.isEnabled = wasSoundEnabled
+                MusicPlayer.stop()
                 isTourRunning = false
             }
         }
@@ -128,7 +135,7 @@ class MainViewModel {
     }
 
     fun saveAndStartTour() {
-        if (currentTourFrames.size < 2) return // минимум 2 кадра
+        if (currentTourFrames.size < 2) return
         currentTour = FractalTour(
             name = tourName.ifBlank { "Экскурсия ${System.currentTimeMillis()}" },
             frames = currentTourFrames,
