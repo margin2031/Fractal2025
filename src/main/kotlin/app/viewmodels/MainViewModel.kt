@@ -48,6 +48,12 @@ class MainViewModel {
 
     private var iterationsOffset by mutableStateOf(0)
 
+    var isInterfaceHidden by mutableStateOf(false)
+
+    fun toggleInterface() {
+        isInterfaceHidden = !isInterfaceHidden
+    }
+
     private val initialXMin = -2.0
     private val initialXMax = 1.0
     private val initialYMin = -1.0
@@ -104,6 +110,7 @@ class MainViewModel {
     fun startTour(tour: FractalTour) {
         if (isTourRunning) return
         isTourRunning = true
+        isInterfaceHidden = true
         tourJob = viewModelScope.launch {
             val wasSoundEnabled = SoundPlayer.isEnabled
             SoundPlayer.isEnabled = false

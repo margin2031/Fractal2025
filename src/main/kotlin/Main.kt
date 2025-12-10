@@ -107,7 +107,9 @@ fun main() = application {
                             onShowHistory = {
                                 viewModel.refreshDetailedHistory()
                                 showHistoryDialog = true
-                            }
+                            },
+                            onToggleInterface = { viewModel.toggleInterface() },
+                            isInterfaceHidden = viewModel.isInterfaceHidden
                         )
                     },
                     bottomBar = {
@@ -222,6 +224,7 @@ fun FractalCanvas(viewModel: MainViewModel) {
         }
 
         FractalInfoPanel(
+            viewModel = viewModel,
             canUndo = viewModel.canUndo,
             canRedo = viewModel.canRedo,
             zoomText = viewModel.zoomText,
