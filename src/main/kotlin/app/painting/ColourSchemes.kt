@@ -59,14 +59,38 @@ object ColorSchemes {
 
 
     val ice: ColorScheme = { probability ->
-        if (probability == 1f) {
-            Color.BLACK
-        } else {
-            Color.makeRGB(
-                r = 0,
-                g = (probability * 255f).toInt(),
-                b = (probability * 1.5f.coerceAtMost(1f)).toInt()
-            )
+        when {
+            probability == 1f -> {
+                // Чистый лед - яркий голубой с легкой прозрачностью
+                Color.makeRGB(200, 240, 255)
+            }
+            probability >= 0.7f -> {
+                // Плотный лед
+                val intensity = (probability * 1.2f).coerceAtMost(1f)
+                Color.makeRGB(
+                    r = (150 * intensity).toInt(),
+                    g = (220 * intensity).toInt(),
+                    b = (255 * intensity).toInt(),
+                )
+            }
+            probability >= 0.3f -> {
+                // Средний лед
+                val coldFactor = (probability * 1.5f).coerceAtMost(1f)
+                Color.makeRGB(
+                    r = (100 * coldFactor).toInt(),
+                    g = (180 + 40 * probability).toInt(),
+                    b = (220 + 35 * probability).toInt(),
+                )
+            }
+            else -> {
+                // Тонкий/начинающий формироваться лед
+                val frost = probability * 2f // Усиливаем эффект для малых вероятностей
+                Color.makeRGB(
+                    r = (200 * frost).toInt(),
+                    g = (230 * frost).toInt(),
+                    b = (245 * frost).toInt(),
+                )
+            }
         }
     }
 
@@ -81,15 +105,39 @@ object ColorSchemes {
             val x = c * (1 - abs((hue / 60) % 2 - 1))
             val m = 0.5f - c / 2
 
-            val (r1, g1, b1) = when {
-                hue < 60 -> Triple(c, x, 0f)
-                hue < 120 -> Triple(x, c, 0f)
-                hue < 180 -> Triple(0f, c, x)
-                hue < 240 -> Triple(0f, x, c)
-                hue < 300 -> Triple(x, 0f, c)
-                else -> Triple(c, 0f, x)
-            }
+            var r1 = 0f
+            var g1 = 0f
+            var b1 = 0f
 
+            when {
+                hue < 60 -> {
+                    r1 = c
+                    g1 = x
+                    b1 = 0f
+                }
+                hue < 120 -> {
+                    r1 = x
+                    g1 = c
+                    b1 = 0f
+                }
+                hue < 180 -> {
+                    r1 = 0f
+                    g1 = c
+                    b1 = x}
+                hue < 240 -> {
+                    r1 = 0f
+                    g1 = x
+                    b1 = c}
+                hue < 300 -> {
+                    r1 = x
+                    g1 = 0f
+                    b1 = c
+                }
+                else -> {
+                    r1 = c
+                    g1 = 0f
+                    b1 = x}
+            }
             Color.makeRGB(
                 r = ((r1 + m) * 255f).toInt(),
                 g = ((g1 + m) * 255f).toInt(),
