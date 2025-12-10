@@ -55,6 +55,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.painting.convertation.Plain
+import app.tour.TourFrame
 import app.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
 
@@ -311,16 +313,16 @@ fun FractalControlPanel(
             // Фракталы
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("Фракталы:", color = TextDark, fontWeight = FontWeight.Medium, fontSize = 15.sp)
-                FractalButton("Мандельброт") { viewModel.setMandelbrot() }
-                FractalButton("Жюлиа") { viewModel.setJulia() }
-                FractalButton("Трикорн") { viewModel.setTricorn() }
-
+                FractalButton("Мандельброт", enabled = !(viewModel.isRecordingTour || viewModel.isTourRunning)) { viewModel.setMandelbrot() }
+                FractalButton("Жюлиа", enabled = !(viewModel.isRecordingTour || viewModel.isTourRunning)) { viewModel.setJulia() }
+                FractalButton("Трикорн", enabled = !(viewModel.isRecordingTour || viewModel.isTourRunning)) { viewModel.setTricorn() }
                 Button(
-                    onClick = { /* TODO: Загрузить фрактал */ },
+                    onClick = { /* TODO */ },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(backgroundColor = ButtonColor, contentColor = Color.White),
                     shape = MaterialTheme.shapes.small,
-                    elevation = ButtonDefaults.elevation(4.dp, 8.dp)
+                    elevation = ButtonDefaults.elevation(4.dp, 8.dp),
+                    enabled = !(viewModel.isRecordingTour || viewModel.isTourRunning)
                 ) {
                     Text("Загрузить фрактал", fontSize = 13.sp, fontWeight = FontWeight.Medium)
                 }
@@ -370,25 +372,84 @@ fun FractalControlPanel(
 
             Divider(color = SoftPink, thickness = 1.dp)
 
-            Button(
-                onClick = { /* TODO: экскурсия */ },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(backgroundColor = ButtonColor, contentColor = Color.White)
-            ) {
-                Text("Экскурсия по фракталу", fontSize = 14.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
+// Inside FractalControlPanel Composable
+            // ——— ЭКСКУРСИЯ ———
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("Экскурсия:", color = TextDark, fontWeight = FontWeight.Medium, fontSize = 15.sp)
+
+                if (viewModel.isRecordingTour) {
+                    Text("Запись...", color = MediumPink, fontWeight = FontWeight.Bold)
+                    Button(
+                        onClick = { viewModel.addTourFrame() },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = MediumPink, contentColor = Color.White)
+                    ) {
+                        Text("+ Кадр", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                    }
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = { viewModel.stopTourRecording() },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(backgroundColor = DisabledPink, contentColor = Color.White)
+                        ) {
+                            Text("⏸ Прекратить", fontSize = 12.sp)
+                        }
+                        Button(
+                            enabled = viewModel.currentTourFrames.size >= 2,
+                            onClick = { viewModel.saveAndStartTour() },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = if (viewModel.currentTourFrames.size >= 2) ButtonColor else DisabledPink,
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text("▶ Начать", fontSize = 12.sp)
+                        }
+                    }
+                } else {
+                    Button(
+                        onClick = { viewModel.startTourRecording() },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = ButtonColor, contentColor = Color.White)
+                    ) {
+                        Text("⏺ Начать запись", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                    }
+
+                    if (viewModel.currentTour != null) {
+                        Button(
+                            onClick = {
+                                if (viewModel.isTourRunning) viewModel.stopTour()
+                                else viewModel.startTour(viewModel.currentTour!!)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = if (viewModel.isTourRunning) Color.Gray else ButtonColor,
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text(
+                                if (viewModel.isTourRunning) "⏹ Остановить" else "▶ Продолжить",
+                                fontSize = 13.sp
+                            )
+                        }
+                    }
+                }
             }
         }
     }
 }
-
 @Composable
-fun FractalButton(text: String, onClick: () -> Unit) {
+fun FractalButton(text: String, enabled: Boolean = true, onClick: () -> Unit) {
     Button(
         onClick = onClick,
+        enabled = enabled,
         modifier = Modifier.fillMaxWidth(),
         colors = ButtonDefaults.buttonColors(
             backgroundColor = ButtonColor,
-            contentColor = Color.White
+            contentColor = Color.White,
+            disabledBackgroundColor = DisabledPink,
+            disabledContentColor = Color.White.copy(alpha = 0.5f)
         ),
         shape = MaterialTheme.shapes.small,
         elevation = ButtonDefaults.elevation(
