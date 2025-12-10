@@ -257,6 +257,7 @@ class MainViewModel {
             updateZoomLevel()
             mustRepaint = true
             delay(16)
+            System.gc()
         }
 
         if (end.fractalName != currentFractalName) setFractalByName(end.fractalName)
@@ -374,7 +375,7 @@ class MainViewModel {
                 plain.yMax = currentCenterY + newHeight / 2
             }
 
-            updateZoomLevel()
+            updateZoomLevel(isSoundOn = true)
             mustRepaint = true
         }
 
@@ -382,7 +383,7 @@ class MainViewModel {
         lastWindowHeight = newHeight
     }
 
-    private fun updateZoomLevel() {
+    private fun updateZoomLevel(isSoundOn: Boolean = false) {
         val initialWidth = initialXMax - initialXMin
         val currentWidth = plain.xMax - plain.xMin
         val oldZoom = zoomLevel
@@ -399,7 +400,7 @@ class MainViewModel {
         }
         mustRepaint = true
 
-        if ((zoomLevel / oldZoom) > 1.05 || (oldZoom / zoomLevel) > 1.05) {
+        if (((zoomLevel / oldZoom) > 1.05 || (oldZoom / zoomLevel) > 1.05) && isSoundOn) {
             SoundPlayer.zoom()
         }
     }
@@ -476,7 +477,7 @@ class MainViewModel {
                 plain.yMin = yMin
                 plain.yMax = yMax
 
-                updateZoomLevel()
+                updateZoomLevel(isSoundOn = true)
                 mustRepaint = true
             }
         }
@@ -571,7 +572,7 @@ class MainViewModel {
         // Воспроизводим звук сдвига
         SoundPlayer.pan()
 
-        updateZoomLevel()
+        updateZoomLevel(isSoundOn = true)
         mustRepaint = true
     }
 
