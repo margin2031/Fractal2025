@@ -38,6 +38,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.2")
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit5"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.8.0")
 
 
 
@@ -53,7 +54,22 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "Fractal2025"
             packageVersion = "1.0.0"
+
+            macOS {
+                iconFile.set(project.file("src/main/resources/icon.icns")) // или путь к вашему .icns
+                // bundleID = "com.example.fractals" // желательно указать
+            }
+
+            windows {
+                iconFile.set(project.file("src/main/resources/icon.ico"))
+            }
+
+            linux {
+                iconFile.set(project.file("src/main/resources/icon.png"))
+            }
         }
+
+
     }
 }
 tasks.withType<Test> {
