@@ -111,6 +111,7 @@ class MainViewModel {
     var tourName by mutableStateOf("Моя экскурсия")
 
 
+
     fun startTour(tour: FractalTour) {
         if (isTourRunning) return
         isTourRunning = true
@@ -129,6 +130,7 @@ class MainViewModel {
                 }
             } finally {
                 isTourRunning = false
+                isInterfaceHidden = false
                 SoundPlayer.isEnabled = wasSoundEnabled
                 MusicPlayer.stop()
                 isTourRunning = false
