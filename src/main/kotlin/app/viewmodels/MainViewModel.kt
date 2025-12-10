@@ -19,11 +19,15 @@ import app.history.UndoManager
 import app.tour.FractalTour
 import app.tour.TourFrame
 import app.utils.ExporterJPG
+import app.utils.FractalSaving
 import app.utils.SoundPlayer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import java.awt.FileDialog
+import java.awt.Frame
+import javax.swing.JOptionPane
 
 
 class MainViewModel {
@@ -720,12 +724,11 @@ class MainViewModel {
     }
     fun updateTypeColorZoom(colorName:String,fractalName: String,plain: Plain,zoomLevel:Double) {
         resetPanFlag()
-        resetPanFlag()
         saveCurrentState()
         this.plain.xMin = plain.xMin
         this.plain.xMax = plain.xMax
         this.plain.yMin = plain.yMin
-        this.plain.yMax = plain.xMax
+        this.plain.yMax = plain.yMax
         fractalPainter = FractalPainter(
             this.plain,
             FractalFunctions.getFractalByName(fractalName),
