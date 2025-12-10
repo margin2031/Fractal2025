@@ -18,7 +18,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.pointer.pointerMoveFilter
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -59,8 +58,7 @@ fun main() = application {
             viewModel.onAppClosing()
             exitApplication()
         },
-        title = "Фракталы",
-        icon = painterResource("icon.ico")
+        title = "Фракталы"
     ) {
         // Обработка горячих клавиш
         LaunchedEffect(Unit) {
