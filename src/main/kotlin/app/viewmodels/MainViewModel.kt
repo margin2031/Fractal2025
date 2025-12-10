@@ -539,40 +539,30 @@ class MainViewModel {
             maxIterations = maxIterations
         )
     }
-    fun updateTypeColorZoom(colorName:String,fractalName: String,selectionStart: Offset,selectionEnd:Offset,plain: Plain) {
+    fun updateTypeColorZoom(colorName:String,fractalName: String,plain: Plain,zoomLevel:Double) {
         resetPanFlag()
         resetPanFlag()
         saveCurrentState()
-        val currentAspect = plain.width / plain.height
-        if (currentAspect > initialFractalAspect) {
-            val width = (initialYMax - initialYMin) * currentAspect
-            plain.xMin = -width / 2
-            plain.xMax = width / 2
-            plain.yMin = initialYMin
-            plain.yMax = initialYMax
-        } else {
-            val height = (initialXMax - initialXMin) / currentAspect
-            plain.xMin = initialXMin
-            plain.xMax = initialXMax
-            plain.yMin = -height / 2
-            plain.yMax = height / 2
-        }
-
-        lastWindowWidth = plain.width
-        lastWindowHeight = plain.height
-        zoomLevel = 1.0
-        zoomText = "1x"
         this.plain.xMin = plain.xMin
         this.plain.xMax = plain.xMax
         this.plain.yMin = plain.yMin
-        this.plain.yMax = plain.yMax
-        fractalPainter = FractalPainter(this.plain, FractalFunctions.getFractalByName(fractalName), ColorSchemes.getColorSchemeByName(colorName))
+        this.plain.yMax = plain.xMax
+        fractalPainter = FractalPainter(
+            this.plain,
+            FractalFunctions.getFractalByName(fractalName),
+            ColorSchemes.getColorSchemeByName(colorName)
+        )
         currentFractalName = fractalName
         currentColorSchemeName = colorName
-        this.selectionStart = selectionStart
-        this.selectionEnd = selectionEnd
-        isSelecting = true
-        onStopSelecting()
+        this.zoomLevel = zoomLevel
+        zoomText = when {
+            zoomLevel >= 1_000_000 -> String.format("%.1fMx", zoomLevel / 1_000_000)
+            zoomLevel >= 1_000 -> String.format("%.1fKx", zoomLevel / 1_000)
+            zoomLevel >= 100 -> String.format("%.0fx", zoomLevel)
+            zoomLevel >= 10 -> String.format("%.1fx", zoomLevel)
+            zoomLevel >= 1 -> String.format("%.2fx", zoomLevel)
+            else -> String.format("%.4fx", zoomLevel)
+        }
         mustRepaint = true
     }
 }

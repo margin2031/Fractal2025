@@ -53,9 +53,10 @@ import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.fractal.FractalSaving.FractalSaving
+import app.utils.FractalSaving
 import app.viewmodels.MainViewModel
 import kotlinx.coroutines.launch
 import java.awt.FileDialog
@@ -333,7 +334,7 @@ fun FractalControlPanel(
                             val save = FractalSaving()
                             try {
                                 save.loadFractalObject(dir, file)
-                                viewModel.updateTypeColorZoom(save.color,save.fractalName,save.selectionStart,save.selectionEnd,save.plain)
+                                viewModel.updateTypeColorZoom(save.color,save.fractalName,save.plain,save.zoomLevel)
                             }
                             catch (_: Exception) {
                                 JOptionPane.showMessageDialog(
@@ -382,17 +383,16 @@ fun FractalControlPanel(
                                     if(fd.directory.endsWith('/')) filename = "/$filename"
                                 file = File(fd.directory+filename)
                                 val save = FractalSaving(
-                                    viewModel.selectionStart,
-                                    viewModel.selectionEnd,
                                     viewModel.currentFractalName,
                                     viewModel.currentColorSchemeName,
-                                    viewModel.plain
+                                    viewModel.plain,
+                                    viewModel.zoomLevel
                                 )
                                 save.saveFractalObject(file)
                             }
                     }, modifier = Modifier.weight(1f).height(40.dp),
                         colors = ButtonDefaults.buttonColors(backgroundColor = ButtonColor, contentColor = Color.White)) {
-                        Text("Fractal", fontSize = 13.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+                        Text("Fractal", fontSize = 13.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(),maxLines = 1,overflow = TextOverflow.Visible)
                     }
                     Button(
                         onClick = { viewModel.saveAsJpg() },
