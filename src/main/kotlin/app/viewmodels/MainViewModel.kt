@@ -24,8 +24,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
-import kotlin.math.exp
-import kotlin.math.ln
+
 
 class MainViewModel {
     var fractalImage by mutableStateOf(ImageBitmap(0, 0))
@@ -554,7 +553,6 @@ class MainViewModel {
     }
 
     fun handlePan(delta: Offset) {
-
         // Если еще не начали панорамировать - сохраняем состояние
         if (!isPanning) {
             saveCurrentState()
@@ -569,6 +567,9 @@ class MainViewModel {
         plain.xMax -= dx * xRange
         plain.yMin -= dy * yRange
         plain.yMax -= dy * yRange
+
+        // Воспроизводим звук сдвига
+        SoundPlayer.pan()
 
         updateZoomLevel()
         mustRepaint = true
