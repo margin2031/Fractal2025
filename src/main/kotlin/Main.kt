@@ -4,12 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.key.*
@@ -24,10 +18,10 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.pointer.pointerMoveFilter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,6 +37,8 @@ import app.ui.FractalTopAppBar
 import app.ui.HistoryDialog
 import app.viewmodels.MainViewModel
 
+
+
 private val SoftPink = Color(0xFFF8BBD0)
 private val LightPink = Color(0xFFF48FB1)
 private val MediumPink = Color(0xFFEC407A)
@@ -50,8 +46,6 @@ private val DarkPink = Color(0xFFC2185B)
 private val BackgroundPink = Color(0xFFFFF0F5)
 private val CardPink = Color(0xFFFFEBEE)
 private val TextDark = Color(0xFF311B92)
-private val ButtonColor = Color(0xFFD81B60)
-private val DisabledPink = Color(0xFFF8C1D9)
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() = application {
@@ -65,7 +59,8 @@ fun main() = application {
             viewModel.onAppClosing()
             exitApplication()
         },
-        title = "Фракталы"
+        title = "Фракталы",
+        icon = painterResource("icon.ico")
     ) {
         // Обработка горячих клавиш
         LaunchedEffect(Unit) {
@@ -118,7 +113,7 @@ fun main() = application {
                         val coordsText = remember(globalMousePosition, viewModel.currentPlain) {
                             val pos = globalMousePosition
                             val plain = viewModel.currentPlain
-                            if (pos != null && plain != null) {
+                            if (pos != null) {
                                 try {
                                     val x = Converter.xScr2Crt(pos.x, plain)
                                     val y = Converter.yScr2Crt(pos.y, plain)
@@ -177,53 +172,51 @@ fun main() = application {
     }
 }
 
+
+
 @Composable
 fun FractalCanvas(viewModel: MainViewModel) {
     val textMeasurer = rememberTextMeasurer()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Canvas(
+        // ← ВАЖНО: обработчик мыши на Box, а НЕ на Canvas!
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
                 .fractalMouseHandlers(
-                    onRightPanDelta = { delta ->
-                        viewModel.handlePan(delta)
-                    },
-                    onRightClick = { position ->
-                        viewModel.showContextMenuAt(position)
-                    },
-                    onLeftSelectionStart = { offset ->
-                        viewModel.onStartSelecting(offset)
-                    },
-                    onLeftSelectionUpdate = { currentPosition ->
-                        viewModel.onSelecting(currentPosition)
-                    },
-                    onLeftSelectionEnd = {
-                        viewModel.onStopSelecting()
-                    }
+                    onRightPanDelta = { delta -> viewModel.handlePan(delta) },
+                    onRightClick = { position -> viewModel.showContextMenuAt(position) },
+                    onLeftSelectionStart = { viewModel.onStartSelecting(it) },
+                    onLeftSelectionUpdate = { viewModel.onSelecting(it) },
+                    onLeftSelectionEnd = { viewModel.onStopSelecting() }
                 )
         ) {
-            viewModel.paint(this)
+            // Теперь Canvas внутри — он не будет перехватывать события
+            Canvas(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+            ) {
+                viewModel.paint(this)
 
-            if (viewModel.isSelecting) {
-                val (selectionOffset, selectionSize) = viewModel.selectionRect
+                if (viewModel.isSelecting) {
+                    val (selectionOffset, selectionSize) = viewModel.selectionRect
+                    if (selectionSize.width > 0 && selectionSize.height > 0) {
+                        drawRect(
+                            color = SoftPink.copy(alpha = 0.3f),
+                            topLeft = selectionOffset,
+                            size = selectionSize
+                        )
+                        drawRect(
+                            color = MediumPink,
+                            topLeft = selectionOffset,
+                            size = selectionSize,
+                            style = Stroke(width = 2f)
+                        )
 
-                if (selectionSize.width > 0 && selectionSize.height > 0) {
-                    drawRect(
-                        color = SoftPink.copy(alpha = 0.3f),
-                        topLeft = selectionOffset,
-                        size = selectionSize
-                    )
-                    drawRect(
-                        color = MediumPink,
-                        topLeft = selectionOffset,
-                        size = selectionSize,
-                        style = Stroke(width = 2f)
-                    )
-
-                    val text = "%.0f × %.0f".format(selectionSize.width, selectionSize.height)
-                    drawSelectionText(text, selectionOffset, selectionSize, textMeasurer)
+                        val text = "%.0f × %.0f".format(selectionSize.width, selectionSize.height)
+                        drawSelectionText(text, selectionOffset, selectionSize, textMeasurer)
+                    }
                 }
             }
         }
